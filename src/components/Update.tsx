@@ -1,10 +1,9 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useContext } from "react";
 import { UserContext } from "./userContext";
 import { useState } from "react";
-import { Box, Button, Modal, TextField } from "../../node_modules/@mui/material/index";
-
-
+import { Button,Modal,Box,TextField } from "@mui/material";
+import axios from "axios";
 const style = {
     position: 'absolute',
     top: '50%',
@@ -25,50 +24,76 @@ const style = {
     const firstNameRef = useRef<HTMLInputElement>(null);
     const lastNameRef = useRef<HTMLInputElement>(null);
     const addressRef = useRef<HTMLInputElement>(null);
-    const passwordRef = useRef<HTMLInputElement>(null);
     const emailRef = useRef<HTMLInputElement>(null);
     const phonRef = useRef<HTMLInputElement>(null);
 
 
     const context = useContext(UserContext);
     const [open,setOpen]=useState(true)
+// const [userID, setUserId] = useState<string>();
+
+    
+const handleUpdate=async(e: React.FormEvent)=>{
+    e.preventDefault();
+    console.log(context?.user.firstName)
+    console.log('User ID:', context?.user.id);
+    if (!context?.user.firstName) {
+        alert("User not logged in");
+        return;
+    }
+    try {
+      const res = await axios.put('http://localhost:3000/api/user/', { firstName: firstNameRef.current?.value,
+                                                            lastName: lastNameRef.current?.value ,
+                                                            address: addressRef.current?.value ,
+                                                            email: emailRef.current?.value ,
+                                                            phone: phonRef.current?.value } 
+                                                            , {
+                                                                headers: {
+                                                                    "user-id": context?.user.id, 
+                                                                    "Authorization": `Bearer ${context?.user.token}`,
+                                                                  },}
+      )
+      console.log(res);
+    //   setUserId(res.data.id);
+   
+      context?.userDispatch({ type: 'UPDATE', 
+                                data:  {
+                                    id:  context.user.id,
+                                    firstName: firstNameRef.current?.value || '',
+                                    lastName: lastNameRef.current?.value || '',
+                                    email: emailRef.current?.value || '',
+                                    address: addressRef.current?.value || '',
+                                    phoneNumber: phonRef.current?.value || ''
+                                }
+        })
+        setOpen(false); 
+        setUpdate();
+
+          } catch (e) {
+        if (axios.isAxiosError(e) && e.response?.status === 404)
+          alert('אין כזה משתמש');
+        console.log(e);
+  }
+}
 
 
-   const handleUpdate=()=>{
-    if(context)
-    {
-    context?.userDispatch({ type: 'UPDATE', data: { firstName: firstNameRef.current?.value || '',
-                                                    lastName: lastNameRef.current?.value || '',
-                                                    password: passwordRef.current?.value || '' ,
-                                                    address: addressRef.current?.value || '',
-                                                    email: emailRef.current?.value || '' ,
-                                                    phone: phonRef.current?.value || '' } })  
-    }
-    setOpen(false);  
-    setUpdate();
-    }
-    
-    
     
     return(<>
-     <Button onClick={() => {setOpen(true)}}>Update</Button>
-     <Modal open={open}
-            onClose={() => setOpen(false)}
+     <Modal open={open} onClose={() => setUpdate()}
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description">
-            <form action="">
+            <form onSubmit={handleUpdate}>
             <Box sx={style}>
                 <TextField label='firstuserName' inputRef={firstNameRef}/>
                 <TextField label='lastuserName' inputRef={lastNameRef}/>
-                <TextField label='password' inputRef={passwordRef}/>
                 <TextField label='address' inputRef={addressRef}/>
                 <TextField label='email' inputRef={emailRef}/>
                 <TextField label='phone' inputRef={phonRef}/>
 
-            <Button variant="contained" sx={{ background:'black',
+            <Button type="submit" variant="contained" sx={{ background:'black',
                 color:'white',
                 borderRadius:'10px',
-                border:'2px solid white',mt: 2 }} onClick={() => handleUpdate()} >Send </Button>
+                border:'2px solid white',mt: 2 }} >Send </Button>
             </Box>
             </form>
     </Modal>

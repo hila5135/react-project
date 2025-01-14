@@ -1,6 +1,8 @@
 
 
 export type User={
+    [x: string]: any
+    id: string,
     firstName:string,
     lastName:string,
     mail:string,
@@ -24,6 +26,7 @@ export const userReducer=(state:User,action:Action):User=>{
             return {...state,...action.data};
        case 'REMOVE':
             return {
+                id: '',
                 firstName: '',
                 lastName: '',
                 mail: '',

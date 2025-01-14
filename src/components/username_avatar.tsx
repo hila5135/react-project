@@ -67,6 +67,7 @@ const Username_avatar=()=>{
           <Update setUpdate={() => setOpen(false)} />
         </Box>
       </Modal>
+
     </>)
 
 }
